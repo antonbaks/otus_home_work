@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-const TOP_NUMBER = 10
+const topNumber = 10
 
 type wordsWithCount struct {
 	Word  string
@@ -56,15 +56,15 @@ func getStruct(mapWordsWithCount map[string]int) []wordsWithCount {
 }
 
 func getTop(sliceWordsWithCount []wordsWithCount) []string {
-	top10 := make([]string, 0, TOP_NUMBER)
+	top := make([]string, 0, topNumber)
 
 	for i, v := range sliceWordsWithCount {
-		if i+1 > TOP_NUMBER {
+		if i+1 > topNumber {
 			break
 		}
 
-		top10 = append(top10, v.Word)
+		top = append(top, v.Word)
 	}
 
-	return top10
+	return top
 }

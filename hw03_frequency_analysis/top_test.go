@@ -48,6 +48,14 @@ func TestTop10(t *testing.T) {
 		require.Len(t, Top10(""), 0)
 	})
 
+	t.Run("punctuation marks not counted", func(t *testing.T) {
+		require.Len(t, Top10(". , ! ? - :"), 0)
+	})
+
+	t.Run("not strict case", func(t *testing.T) {
+		require.Len(t, Top10("Нога нога нОга ногА"), 1)
+	})
+
 	t.Run("positive test", func(t *testing.T) {
 		if taskWithAsteriskIsCompleted {
 			expected := []string{

@@ -6,12 +6,14 @@ import (
 	"strings"
 )
 
+const TOP_NUMBER = 10
+
 type wordsWithCount struct {
 	Word  string
 	Count int
 }
 
-var re = regexp.MustCompile(`[",!.]|\s-\s`)
+var re = regexp.MustCompile(`[":,!.?]|\s-\s`)
 
 func Top10(text string) []string {
 	text = stringPreprocessing(text)
@@ -32,7 +34,7 @@ func Top10(text string) []string {
 		return wordsWithCount[i].Count > wordsWithCount[j].Count
 	})
 
-	return getTop10(wordsWithCount)
+	return getTop(wordsWithCount)
 }
 
 func stringPreprocessing(text string) string {
@@ -53,11 +55,11 @@ func getStruct(mapWordsWithCount map[string]int) []wordsWithCount {
 	return structs
 }
 
-func getTop10(sliceWordsWithCount []wordsWithCount) []string {
-	top10 := make([]string, 0, 10)
+func getTop(sliceWordsWithCount []wordsWithCount) []string {
+	top10 := make([]string, 0, TOP_NUMBER)
 
 	for i, v := range sliceWordsWithCount {
-		if i > 9 {
+		if i+1 > TOP_NUMBER {
 			break
 		}
 

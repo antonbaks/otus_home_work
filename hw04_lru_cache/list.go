@@ -45,6 +45,13 @@ func (l *list) Remove(i *ListItem) {
 }
 
 func (l *list) removeListItem(i *ListItem) {
+	if i.Prev == nil && i.Next == nil {
+		l.back = nil
+		l.front = nil
+
+		return
+	}
+
 	if i.Prev == nil {
 		l.removeFront(i)
 
@@ -58,6 +65,7 @@ func (l *list) removeListItem(i *ListItem) {
 	}
 
 	i.Prev.Next = i.Next
+	i.Next.Prev = i.Prev
 }
 
 func (l *list) removeFront(oldFrontListItem *ListItem) {
@@ -73,15 +81,17 @@ func (l *list) removeBack(oldBackListItem *ListItem) {
 }
 
 func (l *list) MoveToFront(i *ListItem) {
+	if i.Prev == nil {
+		return
+	}
+
 	l.removeListItem(i)
 	l.addNewFrontListItem(i)
 }
 
 func (l *list) PushFront(v interface{}) *ListItem {
 	newFrontListItem := ListItem{
-		v,
-		nil,
-		nil,
+		Value: v,
 	}
 
 	l.addNewFrontListItem(&newFrontListItem)
@@ -96,43 +106,30 @@ func (l *list) addNewFrontListItem(i *ListItem) {
 	if front != nil {
 		front.Prev = i
 		i.Next = front
-	} else {
-		l.bindWithBack(i)
+	}
+
+	back := l.Back()
+	if back == nil && front == nil {
+		l.back = i
 	}
 
 	l.front = i
 }
 
-func (l *list) bindWithBack(newFrontListItem *ListItem) {
-	back := l.Back()
-
-	if back == nil {
-		l.back = newFrontListItem
-
-		return
-	}
-
-	for back.Prev != nil {
-		back = back.Prev
-	}
-
-	back.Prev = newFrontListItem
-	newFrontListItem.Next = back
-}
-
 func (l *list) PushBack(v interface{}) *ListItem {
 	newBackListItem := ListItem{
-		v,
-		nil,
-		nil,
+		Value: v,
 	}
 
 	back := l.Back()
 	if back != nil {
 		back.Next = &newBackListItem
 		newBackListItem.Prev = back
-	} else {
-		l.bindWithFront(&newBackListItem)
+	}
+
+	front := l.Front()
+	if back == nil && front == nil {
+		l.front = &newBackListItem
 	}
 
 	l.back = &newBackListItem
@@ -140,21 +137,4 @@ func (l *list) PushBack(v interface{}) *ListItem {
 	l.len++
 
 	return l.Back()
-}
-
-func (l *list) bindWithFront(backListItem *ListItem) {
-	front := l.Front()
-
-	if front == nil {
-		l.front = backListItem
-
-		return
-	}
-
-	for front.Next != nil {
-		front = front.Next
-	}
-
-	front.Next = backListItem
-	backListItem.Prev = front
 }

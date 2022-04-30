@@ -115,7 +115,7 @@ func TestRun(t *testing.T) {
 
 		_ = Run(tasks, workersCount, maxErrorsCount)
 		require.Eventually(t, func() bool {
-			return true
+			return runTasksCount == int32(tasksCount)
 		}, time.Second, 10*time.Millisecond, "tasks were run sequentially?")
 
 		require.Equal(t, runTasksCount, int32(tasksCount), "not all tasks were completed")

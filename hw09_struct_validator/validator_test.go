@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type UserRole string
@@ -24,12 +26,6 @@ type (
 		Version string `validate:"len:5"`
 	}
 
-	Token struct {
-		Header    []byte
-		Payload   []byte
-		Signature []byte
-	}
-
 	Response struct {
 		Code int    `validate:"in:200,404,500"`
 		Body string `json:"omitempty"`
@@ -42,10 +38,38 @@ func TestValidate(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			// Place your code here.
+			in: User{
+				ID:     "err",
+				Name:   "Test",
+				Age:    10,
+				meta:   nil,
+				Email:  "err",
+				Role:   "root",
+				Phones: []string{"1234567890", "12345678"},
+			},
+			expectedErr: ValidationErrors{
+				ValidationError{"ID", ErrStrLen},
+				ValidationError{"Age", ErrIntMin},
+				ValidationError{"Email", ErrStrRegexp},
+				ValidationError{"Role", ErrStrIn},
+				ValidationError{"Phones", ErrStrLen},
+				ValidationError{"Phones", ErrStrLen},
+			},
 		},
-		// ...
-		// Place your code here.
+		{App{"1234"}, ValidationErrors{ValidationError{"Version", ErrStrLen}}},
+		{Response{304, ""}, ValidationErrors{ValidationError{"Code", ErrIntIn}}},
+		{
+			in: User{
+				ID:     "11f47ad5-7b73-42c0-abae-878b1e16adee",
+				Name:   "Test",
+				Age:    20,
+				meta:   nil,
+				Email:  "test@test.com",
+				Role:   "admin",
+				Phones: []string{"89519111511", "89519111511"},
+			},
+			expectedErr: nil,
+		},
 	}
 
 	for i, tt := range tests {
@@ -53,8 +77,7 @@ func TestValidate(t *testing.T) {
 			tt := tt
 			t.Parallel()
 
-			// Place your code here.
-			_ = tt
+			require.Equal(t, tt.expectedErr, Validate(tt.in))
 		})
 	}
 }

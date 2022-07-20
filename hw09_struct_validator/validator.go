@@ -23,13 +23,13 @@ var (
 type ValidationErrors []ValidationError
 
 func (v ValidationErrors) Error() string {
-	str := ""
+	str := strings.Builder{}
 
 	for _, oneV := range v {
-		fmt.Println(oneV.Err)
+		str.WriteString(oneV.Err.Error())
 	}
 
-	return str
+	return str.String()
 }
 
 type validationErrWrapper struct {
@@ -104,9 +104,9 @@ func validateFiled(fv reflect.Value, ft reflect.StructField) error {
 
 	switch fv.Kind() {
 	case reflect.Int:
-		rules, err = getIntRules(rulesString, fv.Interface().(int))
+		rules, err = getIntRules(rulesString, int(fv.Int()))
 	case reflect.String:
-		rules, err = getStringRules(rulesString, getStringByInterface(fv.Interface()))
+		rules, err = getStringRules(rulesString, fv.String())
 	case reflect.Slice:
 		rules, err = getSliceRules(rulesString, fv)
 	default:
@@ -154,11 +154,20 @@ func getStringRules(rs string, value string) ([]Rule, error) {
 
 	sliceRuleString := strings.Split(rs, "|")
 
+	if len(sliceRuleString) == 0 {
+		return rules, ErrVarType
+	}
+
 	for _, osr := range sliceRuleString {
 		sosr := strings.Split(osr, ":")
 		switch sosr[0] {
 		case "len":
-			val, _ := strconv.Atoi(sosr[1])
+			val, err := strconv.Atoi(sosr[1])
+
+			if err != nil {
+				return rules, err
+			}
+
 			rules = append(rules, &StringLenRule{
 				len:        val,
 				fieldValue: value,
@@ -190,24 +199,38 @@ func getIntRules(rs string, value int) ([]Rule, error) {
 
 	sliceRuleString := strings.Split(rs, "|")
 
+	if len(sliceRuleString) == 0 {
+		return rules, ErrVarType
+	}
+
 	for _, osr := range sliceRuleString {
 		sosr := strings.Split(osr, ":")
 		switch sosr[0] {
 		case "min":
-			val, _ := strconv.Atoi(sosr[1])
+			val, err := strconv.Atoi(sosr[1])
+			if err != nil {
+				return rules, err
+			}
 			rules = append(rules, &IntMinRule{
 				min:        val,
 				fieldValue: value,
 			})
 		case "max":
-			val, _ := strconv.Atoi(sosr[1])
+			val, err := strconv.Atoi(sosr[1])
+			if err != nil {
+				return rules, err
+			}
 			rules = append(rules, &IntMaxRule{
 				max:        val,
 				fieldValue: value,
 			})
 		case "in":
+			in, err := covertStringToIntSlice(sosr[1])
+			if err != nil {
+				return rules, err
+			}
 			rules = append(rules, &IntInRule{
-				in:         covertStringToIntSlice(sosr[1]),
+				in:         in,
 				fieldValue: value,
 			})
 		default:
@@ -218,23 +241,17 @@ func getIntRules(rs string, value int) ([]Rule, error) {
 	return rules, nil
 }
 
-func covertStringToIntSlice(str string) []int {
+func covertStringToIntSlice(str string) ([]int, error) {
 	strSlice := strings.Split(str, ",")
 	intSlice := make([]int, 0)
 
 	for _, val := range strSlice {
-		intVar, _ := strconv.Atoi(val)
+		intVar, err := strconv.Atoi(val)
+		if err != nil {
+			return intSlice, err
+		}
 		intSlice = append(intSlice, intVar)
 	}
 
-	return intSlice
-}
-
-func getStringByInterface(i interface{}) string {
-	switch v := i.(type) {
-	case string:
-		return v
-	default:
-		return fmt.Sprintf("%v", v)
-	}
+	return intSlice, nil
 }

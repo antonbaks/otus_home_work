@@ -1,0 +1,11 @@
+goos: linux
+goarch: amd64
+pkg: github.com/antonbaks/otus_home_work/hw10_program_optimization
+cpu: Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz
+BenchmarkStats-8   	       6	 168357523 ns/op	11846097 B/op	  645334 allocs/op
+BenchmarkStats-8   	       6	 172341022 ns/op	11845953 B/op	  645333 allocs/op
+BenchmarkStats-8   	       6	 170872918 ns/op	11846057 B/op	  645334 allocs/op
+BenchmarkStats-8   	       6	 169580441 ns/op	11846201 B/op	  645335 allocs/op
+BenchmarkStats-8   	       6	 170602982 ns/op	11845852 B/op	  645333 allocs/op
+PASS
+ok  	github.com/antonbaks/otus_home_work/hw10_program_optimization	6.075s

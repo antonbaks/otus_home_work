@@ -18,7 +18,7 @@ func (r *StatusRecorder) WriteHeader(status int) {
 	r.ResponseWriter.WriteHeader(status)
 }
 
-func loggingMiddleware(next http.Handler) http.Handler {
+func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		recorder := &StatusRecorder{
@@ -36,6 +36,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 			strconv.Itoa(recorder.Status),
 			duration.String(),
 			r.UserAgent(),
+			"\n",
 		}
 
 		os.Stdout.WriteString(strings.Join(s, " "))

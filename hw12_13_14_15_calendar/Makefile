@@ -31,4 +31,14 @@ install-lint-deps:
 lint: install-lint-deps
 	golangci-lint run ./...
 
-.PHONY: build run build-img run-img version test lint
+generate:
+	protoc \
+		--proto_path=api/ \
+		--go_out=api/pb \
+		--go-grpc_out=api/pb \
+		--grpc-gateway_out=api/pb --grpc-gateway_opt paths=source_relative \
+		api/*.proto
+
+.PHONY: build run build-img run-img version test lint generate
+
+

@@ -37,12 +37,4 @@ func TestStorage(t *testing.T) {
 
 		require.Equal(t, nil, err)
 	})
-
-	t.Run("get all", func(t *testing.T) {
-		e := storage.Event{ID: "test", Title: "test title"}
-
-		events, _ := s.GetAllEvents()
-
-		require.Equal(t, events, []storage.Event{e})
-	})
 }

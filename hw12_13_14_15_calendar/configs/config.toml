@@ -6,9 +6,12 @@ type = "in_memory"
 
 [http]
 host = "localhost"
-port = "8080"
+grpcPort = "50051"
+type="tcp"
+gatewayPort="8080"
 
 [sql]
 driverName = "postgres"
 dataSourceName = "user=admin dbname=calendar password=admin host=172.17.0.1 port=5432 sslmode=disable"
-migrationsDir = "/home/anton/projects/go/src/github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/migrations"
+migrationsDir = "./migrations"
+

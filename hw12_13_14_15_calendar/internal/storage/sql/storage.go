@@ -2,6 +2,7 @@ package sqlstorage
 
 import (
 	"context"
+	"time"
 
 	"github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/storage"
 	"github.com/jmoiron/sqlx"
@@ -71,9 +72,9 @@ func (s *Storage) Close(ctx context.Context) error {
 func (s *Storage) CreateEvent(e storage.Event) error {
 	query := `
 			INSERT INTO
-			    events (title, description, start_at, end_at, user_id, remind_for)
+			    events (id, title, description, start_at, end_at, user_id, remind_for)
 			VALUES
-			    (:name, :description, :start_at, :end_at, :user_id, :remind_for)
+			    (:id, :title, :description, :start_at, :end_at, :user_id, :remind_for)
 	`
 
 	if _, err := s.db.NamedExec(query, e); err != nil {
@@ -126,6 +127,7 @@ func (s *Storage) Update(e storage.Event) error {
 func (s *Storage) GetEventByID(id string) (storage.Event, error) {
 	query := `
 			SELECT 
+				id,
 				title,
 				description,
 				start_at,
@@ -146,9 +148,10 @@ func (s *Storage) GetEventByID(id string) (storage.Event, error) {
 	return e, nil
 }
 
-func (s *Storage) GetAllEvents() ([]storage.Event, error) {
+func (s *Storage) GetEvents(startAt time.Time, endAt time.Time, userID int) ([]storage.Event, error) {
 	query := `
 			SELECT 
+				id,
 				title,
 				description,
 				start_at,
@@ -157,10 +160,13 @@ func (s *Storage) GetAllEvents() ([]storage.Event, error) {
 				remind_for
 			FROM
 				events
+			WHERE
+			    start_at BETWEEN $1 and $2
+				and user_id = $3
 	`
 
 	var e []storage.Event
-	if err := s.db.Select(&e, query); err != nil {
+	if err := s.db.Select(&e, query, startAt, endAt, userID); err != nil {
 		return e, err
 	}
 

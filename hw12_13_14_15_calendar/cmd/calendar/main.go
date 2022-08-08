@@ -3,15 +3,17 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/app"
+	"github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/logger"
+	internalhttp "github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/server/http"
+	memorystorage "github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/storage/memory"
+	sqlstorage "github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/storage/sql"
 )
 
 var configFile string
@@ -28,13 +30,23 @@ func main() {
 		return
 	}
 
-	config := NewConfig()
+	config := NewConfig(configFile)
+
 	logg := logger.New(config.Logger.Level)
 
-	storage := memorystorage.New()
+	var storage app.Storage
+	if config.Storage.Type == StorageInMemory {
+		storage = memorystorage.New(logg)
+	} else {
+		storage = sqlstorage.New(&config, logg)
+		if err := storage.MigrationUp(context.Background()); err != nil {
+			log.Fatalln(err)
+		}
+	}
+
 	calendar := app.New(logg, storage)
 
-	server := internalhttp.NewServer(logg, calendar)
+	server := internalhttp.NewServer(logg, calendar, &config)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -48,6 +60,10 @@ func main() {
 
 		if err := server.Stop(ctx); err != nil {
 			logg.Error("failed to stop http server: " + err.Error())
+		}
+
+		if err := storage.Close(ctx); err != nil {
+			logg.Error("failed to stop db: " + err.Error())
 		}
 	}()
 

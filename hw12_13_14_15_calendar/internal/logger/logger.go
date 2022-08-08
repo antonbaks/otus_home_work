@@ -2,19 +2,29 @@ package logger
 
 import "fmt"
 
-type Logger struct { // TODO
+const (
+	INFO  = "INFO"
+	ERROR = "ERROR"
+)
+
+type Logger struct {
+	level string
 }
 
 func New(level string) *Logger {
-	return &Logger{}
+	return &Logger{
+		level: level,
+	}
 }
 
 func (l Logger) Info(msg string) {
-	fmt.Println(msg)
+	if l.level == INFO || l.level == ERROR {
+		fmt.Println(msg)
+	}
 }
 
 func (l Logger) Error(msg string) {
-	// TODO
+	if l.level == ERROR {
+		fmt.Println(msg)
+	}
 }
-
-// TODO

@@ -33,6 +33,7 @@ COPY --from=build ${BIN_FILE} ${BIN_FILE}
 COPY --from=build ./app/migrations ./migrations
 
 ENV CONFIG_FILE /etc/calendar/config.toml
-COPY ./configs/config.toml ${CONFIG_FILE}
+ARG ORIGINAL_CONFIG_FILE
+COPY ${ORIGINAL_CONFIG_FILE} ${CONFIG_FILE}
 
 CMD ${BIN_FILE} -config ${CONFIG_FILE}

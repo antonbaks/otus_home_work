@@ -69,6 +69,19 @@ func (s *Storage) GetEvents(startAt time.Time, endAt time.Time, userID int) ([]s
 	return events, nil
 }
 
+func (s *Storage) IsNotify(id string, userID int) (storage.Event, error) {
+	e, err := s.GetEventByID(id)
+	if err != nil {
+		return e, err
+	}
+
+	if e.UserID == userID {
+		return e, nil
+	}
+
+	return storage.Event{}, storage.ErrEventNotFound
+}
+
 func (s *Storage) MigrationUp() error {
 	return nil
 }

@@ -48,7 +48,7 @@ test:
 	go test -race ./internal/... ./internal/...
 
 install-lint-deps:
-	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.41.1
+	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.45.2
 
 lint: install-lint-deps
 	golangci-lint run ./...
@@ -61,6 +61,28 @@ generate:
 		--grpc-gateway_out=api/pb --grpc-gateway_opt paths=source_relative \
 		api/*.proto
 
-.PHONY: build run build-img run-img version test lint generate
+up:
+	 docker-compose -f deployments/docker-compose.yaml -f deployments/docker-compose.dev.yaml up -d
+
+down:
+	 docker-compose -f deployments/docker-compose.yaml -f deployments/docker-compose.dev.yaml down
+
+integration-tests:
+	set -e; \
+	docker-compose -f deployments/docker-compose.yaml -f deployments/docker-compose.test.yaml up --build -d; \
+	test_status_code=0 ;\
+	docker-compose -f deployments/docker-compose.yaml -f deployments/docker-compose.test.yaml run integration-tests go test -v -mod=readonly -tags integration ./tests/integration || test_status_code=$$? ;\
+	docker-compose -f deployments/docker-compose.yaml -f deployments/docker-compose.test.yaml down ;\
+	exit $$test_status_code ;
+
+test-cleanup:
+	docker-compose -f deployments/docker-compose.yaml -f deployments/docker-compose.test.yaml down \
+	--rmi local \
+			--volumes \
+			--remove-orphans \
+			--timeout 60; \
+  	docker-compose rm -f
+
+.PHONY: build run build-img run-img version test lint generate up down integration-tests
 
 

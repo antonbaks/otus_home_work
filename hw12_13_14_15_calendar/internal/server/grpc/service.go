@@ -18,6 +18,7 @@ type App interface {
 	UpdateEvent(event storage.Event) (storage.Event, error)
 	DeleteEvent(event storage.Event) error
 	GetEvents(startAt time.Time, endAt time.Time, userID int) ([]storage.Event, error)
+	IsNotify(id string, userID int) (storage.Event, error)
 }
 
 type Service struct {
@@ -41,7 +42,7 @@ func (s *Service) CreateEvent(ctx context.Context, req *pb.CreateEventRequest) (
 		return nil, err
 	}
 
-	return &pb.CreateEventResponse{Event: convertAppEventToPbEvent(e)}, nil
+	return &pb.CreateEventResponse{Event: ConvertAppEventToPbEvent(e)}, nil
 }
 
 func (s *Service) DeleteEvent(ctx context.Context, req *pb.DeleteEventRequest) (*emptypb.Empty, error) {
@@ -62,7 +63,7 @@ func (s *Service) UpdateEvent(ctx context.Context, req *pb.UpdateEventRequest) (
 		return nil, err
 	}
 
-	return &pb.UpdateEventResponse{Event: convertAppEventToPbEvent(e)}, nil
+	return &pb.UpdateEventResponse{Event: ConvertAppEventToPbEvent(e)}, nil
 }
 
 func (s *Service) GetEvents(ctx context.Context, req *pb.GetEventsRequest) (*pb.GetEventsResponse, error) {
@@ -71,7 +72,16 @@ func (s *Service) GetEvents(ctx context.Context, req *pb.GetEventsRequest) (*pb.
 		return nil, err
 	}
 
-	return &pb.GetEventsResponse{Events: convertSliceAppEventToPbEvent(e)}, nil
+	return &pb.GetEventsResponse{Events: ConvertSliceAppEventToPbEvent(e)}, nil
+}
+
+func (s *Service) IsNotifyEvent(ctx context.Context, req *pb.IsNotifyEventRequest) (*pb.IsNotifyEventResponse, error) {
+	e, err := s.app.IsNotify(req.EventId, int(req.UserId))
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.IsNotifyEventResponse{Event: ConvertAppEventToPbEvent(e)}, nil
 }
 
 func convertPbEventToAppEvent(pbe *pb.Event) storage.Event {
@@ -86,7 +96,7 @@ func convertPbEventToAppEvent(pbe *pb.Event) storage.Event {
 	}
 }
 
-func convertAppEventToPbEvent(e storage.Event) *pb.Event {
+func ConvertAppEventToPbEvent(e storage.Event) *pb.Event {
 	return &pb.Event{
 		Id:          e.ID,
 		Title:       e.Title,
@@ -98,10 +108,10 @@ func convertAppEventToPbEvent(e storage.Event) *pb.Event {
 	}
 }
 
-func convertSliceAppEventToPbEvent(appE []storage.Event) []*pb.Event {
+func ConvertSliceAppEventToPbEvent(appE []storage.Event) []*pb.Event {
 	pbEvents := make([]*pb.Event, 0)
 	for _, e := range appE {
-		pbEvents = append(pbEvents, convertAppEventToPbEvent(e))
+		pbEvents = append(pbEvents, ConvertAppEventToPbEvent(e))
 	}
 
 	return pbEvents

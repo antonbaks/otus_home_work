@@ -72,7 +72,7 @@ func TestApi(t *testing.T) {
 
 	t.Run("Create Event", func(t *testing.T) {
 		resp, err := client.CreateEvent(ctx, &pb.CreateEventRequest{
-			Event: convertAppEventToPbEvent(appEvent),
+			Event: ConvertAppEventToPbEvent(appEvent),
 		})
 		if err != nil {
 			t.Fatalf("CreateEvent failed: %v", err)
@@ -86,7 +86,7 @@ func TestApi(t *testing.T) {
 	t.Run("Update Event", func(t *testing.T) {
 		appEvent.Title = "new title"
 		resp, err := client.UpdateEvent(ctx, &pb.UpdateEventRequest{
-			Event: convertAppEventToPbEvent(appEvent),
+			Event: ConvertAppEventToPbEvent(appEvent),
 		})
 		if err != nil {
 			t.Fatalf("Update event failed: %v", err)

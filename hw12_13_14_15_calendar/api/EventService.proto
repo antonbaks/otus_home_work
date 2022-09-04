@@ -30,6 +30,12 @@ service Events {
       get: "/v1/events/{start_at}/{end_at}/{user_id}"
     };
   }
+
+  rpc IsNotifyEvent(IsNotifyEventRequest) returns (IsNotifyEventResponse) {
+    option (google.api.http) = {
+      get: "/v1/event/{user_id}/{event_id}"
+    };
+  }
 }
 
 message Event {
@@ -70,4 +76,13 @@ message GetEventsRequest {
 
 message GetEventsResponse {
   repeated Event events = 1;
+}
+
+message IsNotifyEventRequest {
+  uint32 user_id = 1;
+  string event_id = 2;
+}
+
+message IsNotifyEventResponse {
+  Event event = 1;
 }

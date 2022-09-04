@@ -1,9 +1,9 @@
 package sqlstorage
 
 import (
-	"context"
 	"time"
 
+	"github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/cleaner"
 	"github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/storage"
 	"github.com/jmoiron/sqlx"
 	// Register db driver.
@@ -34,8 +34,8 @@ func New(cfg Config, log Logger) *Storage {
 	}
 }
 
-func (s *Storage) MigrationUp(ctx context.Context) error {
-	if err := s.Connect(ctx); err != nil {
+func (s *Storage) MigrationUp() error {
+	if err := s.Connect(); err != nil {
 		return err
 	}
 
@@ -50,7 +50,7 @@ func (s *Storage) MigrationUp(ctx context.Context) error {
 	return nil
 }
 
-func (s *Storage) Connect(ctx context.Context) error {
+func (s *Storage) Connect() error {
 	db, err := sqlx.Connect(s.cfg.GetDriverName(), s.cfg.GetDataSourceName())
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func (s *Storage) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (s *Storage) Close(ctx context.Context) error {
+func (s *Storage) Close() error {
 	if err := s.db.Close(); err != nil {
 		return err
 	}
@@ -94,6 +94,22 @@ func (s *Storage) DeleteEvent(e storage.Event) error {
 	`
 
 	if _, err := s.db.NamedExec(query, e); err != nil {
+		s.log.Error(err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (s *Storage) DeleteByEndAt(clean cleaner.Clean) error {
+	query := `
+			DELETE FROM 
+				events 
+		   	WHERE 
+		   	    end_at < :end_at
+	`
+
+	if _, err := s.db.NamedExec(query, clean); err != nil {
 		s.log.Error(err.Error())
 		return err
 	}
@@ -167,6 +183,30 @@ func (s *Storage) GetEvents(startAt time.Time, endAt time.Time, userID int) ([]s
 
 	var e []storage.Event
 	if err := s.db.Select(&e, query, startAt, endAt, userID); err != nil {
+		return e, err
+	}
+
+	return e, nil
+}
+
+func (s *Storage) GetEventsForRemind(startAt time.Time, endAt time.Time) ([]storage.Event, error) {
+	query := `
+			SELECT 
+				id,
+				title,
+				description,
+				start_at,
+				end_at,
+				user_id,
+				remind_for
+			FROM
+				events
+			WHERE
+			    remind_for BETWEEN $1 and $2
+	`
+
+	var e []storage.Event
+	if err := s.db.Select(&e, query, startAt, endAt); err != nil {
 		return e, err
 	}
 

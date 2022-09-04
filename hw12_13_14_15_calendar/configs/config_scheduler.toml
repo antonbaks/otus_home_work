@@ -1,17 +1,21 @@
 [logger]
 level = "ERROR"
 
-[storage]
-type = ""
-
-[http]
-host = "0.0.0.0"
-grpcPort = "50051"
-type="tcp"
-gatewayPort="8080"
-
 [sql]
 driverName = "postgres"
 dataSourceName = "user=admin dbname=calendar password=admin host=db port=5432 sslmode=disable"
 migrationsDir = "./migrations"
+
+[scheduler]
+timeout = "1m"
+
+[cleaner]
+cleanAfter = "-4320h"
+
+[kafka]
+topic = "calendar"
+hosts = [
+    "broker:9092"
+]
+
 

@@ -2,9 +2,9 @@ package internalgrpc
 
 import (
 	"context"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
+	"os"
 	"testing"
 	"time"
 
@@ -15,6 +15,7 @@ import (
 	memorystorage "github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/storage/memory"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 )
 
@@ -26,7 +27,7 @@ func init() {
 	lis = bufconn.Listen(bufSize)
 	s := grpc.NewServer()
 
-	logg := logger.New("ERROR")
+	logg := logger.New("ERROR", os.Stderr, os.Stdout)
 	memoryStorage := memorystorage.New(logg)
 	calendar := app.New(logg, memoryStorage)
 
@@ -44,11 +45,19 @@ func bufDialer(context.Context, string) (net.Conn, error) {
 
 func TestApi(t *testing.T) {
 	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.DialContext(
+		ctx,
+		"bufnet",
+		grpc.WithContextDialer(bufDialer),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Fatalf("Failed to dial bufnet: %v", err)
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Fatalln(err)
+		}
+	}()
 	client := pb.NewEventsClient(conn)
 
 	appEvent := storage.Event{

@@ -1,0 +1,8 @@
+[logger]
+level = "ERROR"
+
+[kafka]
+topic = "calendar"
+hosts = [
+    "broker:9092"
+]

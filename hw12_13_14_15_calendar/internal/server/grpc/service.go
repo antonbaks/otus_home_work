@@ -2,6 +2,7 @@ package internalgrpc
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/api/pb"
@@ -9,6 +10,8 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+var ErrEmptyData = errors.New("request data is empty")
 
 type App interface {
 	CreateEvent(event storage.Event) (storage.Event, error)
@@ -29,6 +32,10 @@ func NewService(app App) *Service {
 }
 
 func (s *Service) CreateEvent(ctx context.Context, req *pb.CreateEventRequest) (*pb.CreateEventResponse, error) {
+	if req.Event == nil {
+		return nil, ErrEmptyData
+	}
+
 	e, err := s.app.CreateEvent(convertPbEventToAppEvent(req.Event))
 	if err != nil {
 		return nil, err
@@ -46,6 +53,10 @@ func (s *Service) DeleteEvent(ctx context.Context, req *pb.DeleteEventRequest) (
 }
 
 func (s *Service) UpdateEvent(ctx context.Context, req *pb.UpdateEventRequest) (*pb.UpdateEventResponse, error) {
+	if req.Event == nil {
+		return nil, ErrEmptyData
+	}
+
 	e, err := s.app.UpdateEvent(convertPbEventToAppEvent(req.Event))
 	if err != nil {
 		return nil, err

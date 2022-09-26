@@ -1,66 +1,49 @@
 package internalhttp
 
 import (
-	"context"
 	"net"
 	"net/http"
+
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 )
 
 type Server struct {
-	logger Logger
-	app    Application
-	config Config
-	Server *http.Server
+	logger  Logger
+	cfg     Config
+	server  *http.Server
+	servMux *runtime.ServeMux
 }
 
-type Logger interface { // TODO
-}
-
-type Application interface {
-	PrintHello(w http.ResponseWriter, r *http.Request)
+type Logger interface {
+	Error(msg string)
 }
 
 type Config interface {
 	GetHTTPHost() string
-	GetHTTPPort() string
+	GetHTTPGatewayPort() string
 }
 
-func NewServer(logger Logger, app Application, config Config) *Server {
+func NewServer(logger Logger, cfg Config, servMux *runtime.ServeMux) *Server {
 	return &Server{
-		logger: logger,
-		app:    app,
-		config: config,
+		logger:  logger,
+		cfg:     cfg,
+		servMux: servMux,
 	}
 }
 
-func (s *Server) Start(ctx context.Context) error {
-	mux := http.NewServeMux()
-
-	finalHandler := http.HandlerFunc(s.app.PrintHello)
-	mux.Handle("/hello", loggingMiddleware(finalHandler))
-
-	server := &http.Server{
-		Addr:    net.JoinHostPort(s.config.GetHTTPHost(), s.config.GetHTTPPort()),
-		Handler: mux,
+func (s *Server) Start() error {
+	s.server = &http.Server{
+		Addr:    net.JoinHostPort(s.cfg.GetHTTPHost(), s.cfg.GetHTTPGatewayPort()),
+		Handler: LoggingMiddleware(s.servMux),
 	}
-	defer server.Close()
-	s.Server = server
 
-	if err := server.ListenAndServe(); err != nil {
+	if err := s.server.ListenAndServe(); err != nil {
 		return err
 	}
 
-	<-ctx.Done()
-
 	return nil
 }
 
-func (s *Server) Stop(ctx context.Context) error {
-	ctx.Done()
-
-	s.Server.Close()
-
-	return nil
+func (s *Server) Stop() error {
+	return s.server.Close()
 }
-
-// TODO

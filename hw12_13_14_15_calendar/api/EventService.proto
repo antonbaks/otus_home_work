@@ -1,7 +1,73 @@
 syntax = "proto3";
 
 package event;
+option go_package = "./;pb";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+service Events {
+  rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse) {
+    option (google.api.http) = {
+      post: "/v1/event"
+      body: "*"
+    };
+  }
+  rpc DeleteEvent(DeleteEventRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/event/{id}"
+    };
+  }
+  rpc UpdateEvent(UpdateEventRequest) returns (UpdateEventResponse) {
+    option (google.api.http) = {
+      put: "/v1/event/{event.id}"
+      body: "*"
+    };
+  }
+  rpc GetEvents(GetEventsRequest) returns (GetEventsResponse) {
+    option (google.api.http) = {
+      get: "/v1/events/{start_at}/{end_at}/{user_id}"
+    };
+  }
+}
 
 message Event {
-    // TODO
+    string id = 1;
+    string title = 2;
+    google.protobuf.Timestamp start_at = 3;
+    google.protobuf.Timestamp end_at = 4;
+    string description = 5;
+    uint32 user_id = 6;
+    google.protobuf.Timestamp remind_for = 7;
+}
+
+message CreateEventRequest {
+  Event event = 1;
+}
+
+message CreateEventResponse {
+  Event event = 1;
+}
+
+message DeleteEventRequest {
+  string id = 1;
+}
+
+message UpdateEventRequest {
+  Event event = 1;
+}
+
+message UpdateEventResponse {
+  Event event = 1;
+}
+
+message GetEventsRequest {
+  uint32 user_id = 1;
+  google.protobuf.Timestamp start_at = 2;
+  google.protobuf.Timestamp end_at = 3;
+}
+
+message GetEventsResponse {
+  repeated Event events = 1;
 }

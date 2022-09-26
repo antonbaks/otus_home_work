@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/storage"
 )
@@ -59,7 +60,7 @@ func (s *Storage) GetEventByID(id string) (storage.Event, error) {
 	return e, nil
 }
 
-func (s *Storage) GetAllEvents() ([]storage.Event, error) {
+func (s *Storage) GetEvents(startAt time.Time, endAt time.Time, userID int) ([]storage.Event, error) {
 	events := make([]storage.Event, 0)
 
 	for _, event := range s.events {

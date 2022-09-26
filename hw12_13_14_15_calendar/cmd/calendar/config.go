@@ -27,8 +27,10 @@ type StorageTypeConf struct {
 }
 
 type HTTPConf struct {
-	Host string
-	Port string
+	Host        string
+	GrpcPort    string
+	GatewayPort string
+	Type        string
 }
 
 type SQLConf struct {
@@ -52,8 +54,16 @@ func (c *Config) GetHTTPHost() string {
 	return c.HTTP.Host
 }
 
-func (c *Config) GetHTTPPort() string {
-	return c.HTTP.Port
+func (c *Config) GetGRPCPort() string {
+	return c.HTTP.GrpcPort
+}
+
+func (c *Config) GetHTTPGatewayPort() string {
+	return c.HTTP.GatewayPort
+}
+
+func (c *Config) GetHTTPType() string {
+	return c.HTTP.Type
 }
 
 func (c *Config) GetDriverName() string {

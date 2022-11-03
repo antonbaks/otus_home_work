@@ -30,7 +30,7 @@ type Notificator interface {
 }
 
 type Producer interface {
-	Send(notifications notificator.Notification) error
+	SendMessages(notifications []notificator.Notification) error
 }
 
 type Cleaner interface {
@@ -58,10 +58,8 @@ func (sch *Scheduler) Start() error {
 
 		sch.l.Info(fmt.Sprintf("Between %s and %s find %d notifications", now.String(), afterNow.String(), len(n)))
 
-		for _, oneN := range n {
-			if err := sch.p.Send(oneN); err != nil {
-				sch.l.Error(err.Error())
-			}
+		if err := sch.p.SendMessages(n); err != nil {
+			sch.l.Error(err.Error())
 		}
 
 		if err := sch.c.ClearEvents(); err != nil {

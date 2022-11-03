@@ -26,25 +26,25 @@ type Logger interface {
 	Error(msg string)
 }
 
-func (p Producer) Send(n notificator.Notification) error {
-	defer func() {
-		if err := p.p.Close(); err != nil {
-			p.l.Error("Can`t close connect producer: " + err.Error())
-		}
-	}()
+func (p Producer) SendMessages(n []notificator.Notification) error {
+	producerMessage := make([]*sarama.ProducerMessage, len(n))
 
-	str, err := json.Marshal(n)
-	if err != nil {
-		return err
+	for i, oneN := range n {
+		str, err := json.Marshal(oneN)
+		if err != nil {
+			return err
+		}
+
+		producerMessage[i] = &sarama.ProducerMessage{
+			Topic: p.c.GetKafkaTopic(),
+			Value: sarama.StringEncoder(str),
+		}
 	}
 
-	_, _, err = p.p.SendMessage(&sarama.ProducerMessage{
-		Topic: p.c.GetKafkaTopic(),
-		Value: sarama.StringEncoder(str),
-	})
+	if err := p.p.SendMessages(producerMessage); err != nil {
+		p.l.Error("failed to send messages to topic" + err.Error())
 
-	if err != nil {
-		p.l.Error("failed to send message to topic" + err.Error())
+		return err
 	}
 
 	return nil

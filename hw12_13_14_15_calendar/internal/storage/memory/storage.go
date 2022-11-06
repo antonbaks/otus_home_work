@@ -1,7 +1,6 @@
 package memorystorage
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -70,10 +69,10 @@ func (s *Storage) GetEvents(startAt time.Time, endAt time.Time, userID int) ([]s
 	return events, nil
 }
 
-func (s *Storage) MigrationUp(ctx context.Context) error {
+func (s *Storage) MigrationUp() error {
 	return nil
 }
 
-func (s *Storage) Close(ctx context.Context) error {
+func (s *Storage) Close() error {
 	return nil
 }

@@ -1,6 +1,8 @@
 package logger
 
-import "fmt"
+import (
+	"os"
+)
 
 const (
 	INFO  = "INFO"
@@ -8,23 +10,27 @@ const (
 )
 
 type Logger struct {
-	level string
+	level  string
+	stderr *os.File
+	stdout *os.File
 }
 
-func New(level string) *Logger {
+func New(level string, stderr *os.File, stdout *os.File) *Logger {
 	return &Logger{
-		level: level,
+		level:  level,
+		stderr: stderr,
+		stdout: stdout,
 	}
 }
 
 func (l Logger) Info(msg string) {
 	if l.level == INFO || l.level == ERROR {
-		fmt.Println(msg)
+		l.stdout.WriteString(msg + "\n")
 	}
 }
 
 func (l Logger) Error(msg string) {
 	if l.level == ERROR {
-		fmt.Println(msg)
+		l.stderr.WriteString(msg + "\n")
 	}
 }

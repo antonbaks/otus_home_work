@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"time"
 
 	"github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/storage"
@@ -23,8 +22,8 @@ type Storage interface {
 	Update(e storage.Event) error
 	GetEventByID(id string) (storage.Event, error)
 	GetEvents(startAt time.Time, endAt time.Time, UserID int) ([]storage.Event, error)
-	MigrationUp(ctx context.Context) error
-	Close(ctx context.Context) error
+	MigrationUp() error
+	Close() error
 }
 
 func New(log Logger, s Storage) *App {

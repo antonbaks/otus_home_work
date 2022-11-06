@@ -33,14 +33,14 @@ func main() {
 
 	config := NewConfig(configFile)
 
-	logg := logger.New(config.Logger.Level)
+	logg := logger.New(config.Logger.Level, os.Stderr, os.Stdout)
 
 	var storage app.Storage
 	if config.Storage.Type == StorageInMemory {
 		storage = memorystorage.New(logg)
 	} else {
 		storage = sqlstorage.New(&config, logg)
-		if err := storage.MigrationUp(context.Background()); err != nil {
+		if err := storage.MigrationUp(); err != nil {
 			log.Fatalln(err)
 		}
 	}
@@ -58,10 +58,10 @@ func main() {
 	go func() {
 		<-ctx.Done()
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		_, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 
-		if err := storage.Close(ctx); err != nil {
+		if err := storage.Close(); err != nil {
 			logg.Error("failed to stop db: " + err.Error())
 		}
 

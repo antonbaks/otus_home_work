@@ -23,6 +23,7 @@ type EventsClient interface {
 	DeleteEvent(ctx context.Context, in *DeleteEventRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	UpdateEvent(ctx context.Context, in *UpdateEventRequest, opts ...grpc.CallOption) (*UpdateEventResponse, error)
 	GetEvents(ctx context.Context, in *GetEventsRequest, opts ...grpc.CallOption) (*GetEventsResponse, error)
+	IsNotifyEvent(ctx context.Context, in *IsNotifyEventRequest, opts ...grpc.CallOption) (*IsNotifyEventResponse, error)
 }
 
 type eventsClient struct {
@@ -69,6 +70,15 @@ func (c *eventsClient) GetEvents(ctx context.Context, in *GetEventsRequest, opts
 	return out, nil
 }
 
+func (c *eventsClient) IsNotifyEvent(ctx context.Context, in *IsNotifyEventRequest, opts ...grpc.CallOption) (*IsNotifyEventResponse, error) {
+	out := new(IsNotifyEventResponse)
+	err := c.cc.Invoke(ctx, "/event.Events/IsNotifyEvent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EventsServer is the server API for Events service.
 // All implementations must embed UnimplementedEventsServer
 // for forward compatibility
@@ -77,6 +87,7 @@ type EventsServer interface {
 	DeleteEvent(context.Context, *DeleteEventRequest) (*emptypb.Empty, error)
 	UpdateEvent(context.Context, *UpdateEventRequest) (*UpdateEventResponse, error)
 	GetEvents(context.Context, *GetEventsRequest) (*GetEventsResponse, error)
+	IsNotifyEvent(context.Context, *IsNotifyEventRequest) (*IsNotifyEventResponse, error)
 	mustEmbedUnimplementedEventsServer()
 }
 
@@ -95,6 +106,9 @@ func (UnimplementedEventsServer) UpdateEvent(context.Context, *UpdateEventReques
 }
 func (UnimplementedEventsServer) GetEvents(context.Context, *GetEventsRequest) (*GetEventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetEvents not implemented")
+}
+func (UnimplementedEventsServer) IsNotifyEvent(context.Context, *IsNotifyEventRequest) (*IsNotifyEventResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsNotifyEvent not implemented")
 }
 func (UnimplementedEventsServer) mustEmbedUnimplementedEventsServer() {}
 
@@ -181,6 +195,24 @@ func _Events_GetEvents_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Events_IsNotifyEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsNotifyEventRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventsServer).IsNotifyEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/event.Events/IsNotifyEvent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventsServer).IsNotifyEvent(ctx, req.(*IsNotifyEventRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Events_ServiceDesc is the grpc.ServiceDesc for Events service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -203,6 +235,10 @@ var Events_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetEvents",
 			Handler:    _Events_GetEvents_Handler,
+		},
+		{
+			MethodName: "IsNotifyEvent",
+			Handler:    _Events_IsNotifyEvent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

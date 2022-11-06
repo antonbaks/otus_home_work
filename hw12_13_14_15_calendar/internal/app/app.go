@@ -22,6 +22,7 @@ type Storage interface {
 	Update(e storage.Event) error
 	GetEventByID(id string) (storage.Event, error)
 	GetEvents(startAt time.Time, endAt time.Time, UserID int) ([]storage.Event, error)
+	IsNotify(id string, userID int) (storage.Event, error)
 	MigrationUp() error
 	Close() error
 }
@@ -66,4 +67,8 @@ func (a *App) DeleteEvent(event storage.Event) error {
 
 func (a *App) GetEvents(startAt time.Time, endAt time.Time, userID int) ([]storage.Event, error) {
 	return a.s.GetEvents(startAt, endAt, userID)
+}
+
+func (a *App) IsNotify(id string, userID int) (storage.Event, error) {
+	return a.s.IsNotify(id, userID)
 }

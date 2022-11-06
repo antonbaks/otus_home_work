@@ -12,6 +12,7 @@ type Consumer struct {
 	c   sarama.Consumer
 	n   Notificator
 	l   Logger
+	s   Storage
 	cfg Config
 }
 
@@ -19,8 +20,12 @@ type Notificator interface {
 	SentNotification(notification notificator.Notification) error
 }
 
-func NewConsumer(c sarama.Consumer, n Notificator, l Logger, cfg Config) *Consumer {
-	return &Consumer{c: c, n: n, l: l, cfg: cfg}
+type Storage interface {
+	Notify(EventID string) error
+}
+
+func NewConsumer(c sarama.Consumer, n Notificator, l Logger, cfg Config, s Storage) *Consumer {
+	return &Consumer{c: c, n: n, l: l, cfg: cfg, s: s}
 }
 
 func (c Consumer) Receive(ctx context.Context) error {
@@ -54,6 +59,12 @@ ConsumerLoop:
 
 			if err := c.n.SentNotification(n); err != nil {
 				c.l.Error("Can`t sent notification: " + err.Error())
+
+				continue
+			}
+
+			if err := c.s.Notify(n.EventID); err != nil {
+				c.l.Error("Can`t update notification status in db: " + err.Error())
 
 				continue
 			}

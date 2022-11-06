@@ -6,3 +6,8 @@ topic = "calendar"
 hosts = [
     "broker:9092"
 ]
+
+[sql]
+driverName = "postgres"
+dataSourceName = "user=admin dbname=calendar password=admin host=db port=5432 sslmode=disable"
+migrationsDir = "./migrations"

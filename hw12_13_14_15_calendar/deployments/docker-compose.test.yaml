@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  calendar:
+    ports:
+      - "8888:8080"
+      - "50051:50051"
+
+  db:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+      POSTGRES_DB: calendar
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+  zookeeper:
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+
+  broker:
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENERS:  "PLAINTEXT://:9092"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://broker:9092"
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CREATE_TOPICS: "Calendar:1:0"
+
+  integration-tests:
+    build:
+      context: ../.
+      dockerfile: build/DockerfileTest
+    depends_on:
+      - calendar
+      - calendar_sender
+      - calendar_scheduler
+    networks:
+      - calendar-network

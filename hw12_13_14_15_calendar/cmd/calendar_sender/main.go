@@ -12,6 +12,7 @@ import (
 	"github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/mq"
 	"github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/notificator"
 	"github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/sender"
+	sqlstorage "github.com/antonbaks/otus_home_work/hw12_13_14_15_calendar/internal/storage/sql"
 )
 
 var configFile string
@@ -33,8 +34,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	storage := sqlstorage.New(&config, logg)
+	if err := storage.MigrationUp(); err != nil {
+		logg.Error("failed connect db: " + err.Error())
+		os.Exit(1)
+	}
+
 	n := notificator.NewNotificatorWithoutDB()
-	mqConsumer := mq.NewConsumer(consumer, n, logg, &config)
+	mqConsumer := mq.NewConsumer(consumer, n, logg, &config, storage)
 	newSender := sender.NewSender(logg, mqConsumer)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),

@@ -101,6 +101,21 @@ func (s *Storage) DeleteEvent(e storage.Event) error {
 	return nil
 }
 
+func (s *Storage) Notify(eventID string) error {
+	query := `
+			UPDATE 
+			    events 
+			SET
+			    is_notified=$2
+			WHERE
+			    id=$1
+	`
+
+	_ = s.db.MustExec(query, eventID, 1)
+
+	return nil
+}
+
 func (s *Storage) DeleteByEndAt(clean cleaner.Clean) error {
 	query := `
 			DELETE FROM 
@@ -164,6 +179,33 @@ func (s *Storage) GetEventByID(id string) (storage.Event, error) {
 	return e, nil
 }
 
+func (s *Storage) IsNotify(id string, userID int) (storage.Event, error) {
+	query := `
+			SELECT 
+				id,
+				title,
+				description,
+				start_at,
+				end_at,
+				user_id,
+				remind_for
+			FROM
+				events
+			WHERE
+				id=$1
+			  	and user_id=$2 
+				and is_notified=$3
+				
+	`
+
+	e := storage.Event{}
+	if err := s.db.Get(&e, query, id, userID, 1); err != nil {
+		return e, err
+	}
+
+	return e, nil
+}
+
 func (s *Storage) GetEvents(startAt time.Time, endAt time.Time, userID int) ([]storage.Event, error) {
 	query := `
 			SELECT 
@@ -189,7 +231,7 @@ func (s *Storage) GetEvents(startAt time.Time, endAt time.Time, userID int) ([]s
 	return e, nil
 }
 
-func (s *Storage) GetEventsForRemind(startAt time.Time, endAt time.Time) ([]storage.Event, error) {
+func (s *Storage) GetEventsForRemind(startAt time.Time) ([]storage.Event, error) {
 	query := `
 			SELECT 
 				id,
@@ -202,11 +244,12 @@ func (s *Storage) GetEventsForRemind(startAt time.Time, endAt time.Time) ([]stor
 			FROM
 				events
 			WHERE
-			    remind_for BETWEEN $1 and $2
+			    remind_for < $1
+				and is_notified = $2
 	`
 
 	var e []storage.Event
-	if err := s.db.Select(&e, query, startAt, endAt); err != nil {
+	if err := s.db.Select(&e, query, startAt, 0); err != nil {
 		return e, err
 	}
 

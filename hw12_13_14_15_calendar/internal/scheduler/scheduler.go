@@ -26,7 +26,7 @@ type Logger interface {
 }
 
 type Notificator interface {
-	GetNotifications(startAt time.Time, endAt time.Time) ([]notificator.Notification, error)
+	GetNotifications(startAt time.Time) ([]notificator.Notification, error)
 }
 
 type Producer interface {
@@ -49,14 +49,13 @@ func (sch *Scheduler) Start() error {
 
 	for !sch.done {
 		now := time.Now()
-		afterNow := now.Add(timeout)
-		n, err := sch.n.GetNotifications(now, afterNow)
+		n, err := sch.n.GetNotifications(now)
 		if err != nil {
 			sch.l.Error(err.Error())
 			continue
 		}
 
-		sch.l.Info(fmt.Sprintf("Between %s and %s find %d notifications", now.String(), afterNow.String(), len(n)))
+		sch.l.Info(fmt.Sprintf("After %s find %d notifications", now.String(), len(n)))
 
 		if err := sch.p.SendMessages(n); err != nil {
 			sch.l.Error(err.Error())

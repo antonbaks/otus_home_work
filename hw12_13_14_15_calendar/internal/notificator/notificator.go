@@ -23,7 +23,7 @@ type Notificator struct {
 }
 
 type Storage interface {
-	GetEventsForRemind(startAt time.Time, endAt time.Time) ([]storage.Event, error)
+	GetEventsForRemind(startAt time.Time) ([]storage.Event, error)
 }
 
 func NewNotificator(s Storage) *Notificator {
@@ -34,8 +34,8 @@ func NewNotificatorWithoutDB() *Notificator {
 	return &Notificator{}
 }
 
-func (n Notificator) GetNotifications(startAt time.Time, endAt time.Time) ([]Notification, error) {
-	events, err := n.s.GetEventsForRemind(startAt, endAt)
+func (n Notificator) GetNotifications(startAt time.Time) ([]Notification, error) {
+	events, err := n.s.GetEventsForRemind(startAt)
 	if err != nil {
 		return nil, err
 	}
